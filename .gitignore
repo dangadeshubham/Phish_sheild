@@ -1,0 +1,62 @@
+# ===== Python =====
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.egg
+*.egg-info/
+dist/
+build/
+.eggs/
+*.so
+*.dylib
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+.env
+.env.*
+
+# ===== IDE / Editor =====
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# ===== Logs & temp files =====
+*.log
+*.tmp
+*.cache
+pip-log.txt
+
+# ===== Node / npm (ml-pipeline) =====
+node_modules/
+npm-debug.log*
+yarn-error.log*
+.pnp/
+.pnp.js
+
+# ===== Docker =====
+.dockerenv
+
+# ===== Sensitive / Secrets =====
+*.pem
+*.key
+*.crt
+secrets.json
+config.local.json
+serviceAccountKey.json
+.firebaserc.local
+
+# ===== Build artifacts =====
+*.pyc
+*.class
+
+# ===== OS files =====
+desktop.ini

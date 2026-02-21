@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>PhishShield</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            width: 360px;
+            font-family: 'Segoe UI', Inter, -apple-system, sans-serif;
+            background: #0a0e1a;
+            color: #f1f5f9;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #00d4ff, #7c3aed);
+            padding: 16px 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .header .logo {
+            font-size: 24px;
+        }
+
+        .header h1 {
+            font-size: 16px;
+            font-weight: 700;
+        }
+
+        .header .version {
+            margin-left: auto;
+            font-size: 10px;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 2px 8px;
+            border-radius: 10px;
+        }
+
+        .status-bar {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 20px;
+            background: #111827;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #22c55e;
+            box-shadow: 0 0 8px #22c55e;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1
+            }
+
+            50% {
+                opacity: 0.5
+            }
+        }
+
+        .status-text {
+            font-size: 12px;
+            color: #94a3b8;
+        }
+
+        .content {
+            padding: 16px 20px;
+        }
+
+        .current-site {
+            background: #1a1f35;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 10px;
+            padding: 14px;
+            margin-bottom: 14px;
+        }
+
+        .current-site .label {
+            font-size: 11px;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 6px;
+        }
+
+        .current-site .url {
+            font-size: 13px;
+            color: #f1f5f9;
+            word-break: break-all;
+            font-family: 'Consolas', monospace;
+        }
+
+        .risk-display {
+            text-align: center;
+            padding: 20px;
+            background: #1a1f35;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 10px;
+            margin-bottom: 14px;
+        }
+
+        .risk-score {
+            font-size: 48px;
+            font-weight: 800;
+            margin-bottom: 4px;
+        }
+
+        .risk-label {
+            font-size: 14px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .risk-desc {
+            font-size: 12px;
+            color: #94a3b8;
+            margin-top: 8px;
+        }
+
+        .reasons {
+            background: #1a1f35;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 10px;
+            padding: 14px;
+            margin-bottom: 14px;
+        }
+
+        .reasons h3 {
+            font-size: 12px;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 10px;
+        }
+
+        .reason-item {
+            padding: 6px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+            font-size: 12px;
+            color: #94a3b8;
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+        }
+
+        .reason-item:last-child {
+            border-bottom: none;
+        }
+
+        .reason-item .icon {
+            color: #00d4ff;
+        }
+
+        .actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .btn-scan {
+            background: linear-gradient(135deg, #00d4ff, #7c3aed);
+            color: white;
+        }
+
+        .btn-report {
+            background: rgba(239, 68, 68, 0.15);
+            color: #ef4444;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+
+        .btn:hover {
+            opacity: 0.9;
+            transform: scale(0.98);
+        }
+
+        .footer {
+            padding: 12px 20px;
+            text-align: center;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .footer a {
+            color: #00d4ff;
+            text-decoration: none;
+            font-size: 11px;
+        }
+
+        .scanning {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 20px;
+            color: #00d4ff;
+        }
+
+        .spinner {
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-top-color: #00d4ff;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="header">
+        <span class="logo">🛡️</span>
+        <h1>PhishShield</h1>
+        <span class="version">v1.0</span>
+    </div>
+    <div class="status-bar">
+        <span class="status-dot" id="statusDot"></span>
+        <span class="status-text" id="statusText">Protection active</span>
+    </div>
+    <div class="content">
+        <div class="current-site">
+            <div class="label">Current Page</div>
+            <div class="url" id="currentUrl">Loading...</div>
+        </div>
+        <div id="scanResult">
+            <div class="risk-display">
+                <div class="risk-score" id="riskScore" style="color: #94a3b8">—</div>
+                <div class="risk-label" id="riskLabel" style="color: #94a3b8">Scanning...</div>
+                <div class="risk-desc" id="riskDesc">Analyzing current page</div>
+            </div>
+        </div>
+        <div class="reasons" id="reasonsBox" style="display:none">
+            <h3>Detection Details</h3>
+            <div id="reasonsList"></div>
+        </div>
+        <div class="actions">
+            <button class="btn btn-scan" id="scanBtn" onclick="rescan()">🔍 Rescan</button>
+            <button class="btn btn-report" onclick="reportPhishing()">🚩 Report</button>
+        </div>
+    </div>
+    <div class="footer">
+        <a href="http://localhost:8080" target="_blank">Open Full Dashboard →</a>
+    </div>
+    <script src="popup.js"></script>
+</body>
+
+</html>

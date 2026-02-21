@@ -1,0 +1,766 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="PhishShield — Real-Time AI/ML-Based Phishing Detection & Prevention System">
+    <title>PhishShield — AI Phishing Detection Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="icon"
+        href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🛡️</text></svg>">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+</head>
+
+<body>
+
+    <!-- ===== THREAT INTELLIGENCE TICKER BAR ===== -->
+    <div class="threat-ticker-bar" id="threat-ticker-bar">
+        <div class="ticker-label">
+            <span class="ticker-label-dot"></span>
+            THREAT INTEL
+            <span class="ticker-count" id="ticker-threat-count">0</span>
+        </div>
+        <div class="ticker-track-wrapper">
+            <div class="ticker-track" id="ticker-track">
+                <!-- items injected by JS -->
+            </div>
+        </div>
+        <div class="ticker-controls">
+            <button class="ticker-btn" id="ticker-pause-btn" onclick="toggleTickerPause()"
+                title="Pause/Resume">⏸</button>
+            <button class="ticker-btn" onclick="dismissTicker()" title="Dismiss">✕</button>
+        </div>
+    </div>
+
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-logo">
+                <div class="logo-icon">🛡️</div>
+                <div>
+                    <span class="logo-text">PhishShield</span>
+                    <span class="logo-badge">AI v1.0</span>
+                </div>
+            </div>
+
+            <nav>
+                <div class="nav-section">
+                    <div class="nav-section-title">Main</div>
+                    <div class="nav-item active" data-page="dashboard" id="nav-dashboard">
+                        <span class="nav-icon">📊</span> Dashboard
+                    </div>
+                    <div class="nav-item" data-page="analytics" id="nav-analytics">
+                        <span class="nav-icon">📈</span> Analytics
+                    </div>
+                    <div class="nav-item" data-page="threats" id="nav-threats">
+                        <span class="nav-icon">⚠️</span> Threat Log
+                        <span class="nav-badge" id="threat-count-badge">0</span>
+                    </div>
+                </div>
+                <div class="nav-section">
+                    <div class="nav-section-title">Scanners</div>
+                    <div class="nav-item" data-page="scanner" id="nav-scanner">
+                        <span class="nav-icon">🔍</span> Advanced Scan
+                    </div>
+                    <div class="nav-item" data-page="url-checker" id="nav-url-checker">
+                        <span class="nav-icon">🔗</span> URL Checker
+                    </div>
+                    <div class="nav-item" data-page="crypto-scanner" id="nav-crypto-scanner">
+                        <span class="nav-icon">🪙</span> Crypto Wallet
+                    </div>
+                    <div class="nav-item" data-page="email-analyzer" id="nav-email-analyzer">
+                        <span class="nav-icon">📧</span> Email Analyzer
+                    </div>
+                    <div class="nav-item" data-page="sms-checker" id="nav-sms-checker">
+                        <span class="nav-icon">💬</span> SMS Checker
+                    </div>
+                    <div class="nav-item" data-page="bulk-scanner" id="nav-bulk-scanner">
+                        <span class="nav-icon">📋</span> Bulk Scanner
+                    </div>
+                    <div class="nav-item" data-page="qr-scanner" id="nav-qr-scanner">
+                        <span class="nav-icon">📱</span> QR Scanner
+                    </div>
+                    <div class="nav-item" data-page="vishing" id="nav-vishing">
+                        <span class="nav-icon">📞</span> Vishing Detector
+                    </div>
+                    <div class="nav-item" data-page="header-analyzer" id="nav-header-analyzer">
+                        <span class="nav-icon">🔬</span> Header Analyzer
+                    </div>
+                </div>
+                <div class="nav-section">
+                    <div class="nav-section-title">Learn</div>
+                    <div class="nav-item" data-page="phishing-quiz" id="nav-phishing-quiz">
+                        <span class="nav-icon">🎓</span> Phishing Quiz
+                    </div>
+                    <div class="nav-item" data-page="explainability" id="nav-explainability">
+                        <span class="nav-icon">🧠</span> XAI Reports
+                    </div>
+
+                </div>
+            </nav>
+
+            <div class="sidebar-footer">
+                <div class="theme-toggle" id="theme-toggle" onclick="toggleTheme()">
+                    <span class="theme-toggle-icon" id="theme-icon">🌙</span>
+                    <span class="theme-toggle-label" id="theme-label">Dark Mode</span>
+                </div>
+                <div class="status-indicator">
+                    <span class="status-dot"></span>
+                    <span>All engines online</span>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content with-ticker">
+            <div class="toast-container" id="toast-container"></div>
+
+            <!-- ===== DASHBOARD ===== -->
+            <div class="page active" id="page-dashboard">
+                <div class="header">
+                    <div class="header-title">
+                        <h1>🛡️ Threat Dashboard</h1>
+                        <p>Real-time phishing detection overview — <span id="current-date"></span></p>
+                    </div>
+                    <div class="header-actions">
+                        <button class="btn btn-secondary btn-sm" onclick="refreshStats()">🔄 Refresh</button>
+                        <button class="btn btn-primary btn-sm" onclick="navigateTo('scanner')">🔍 New Scan</button>
+                    </div>
+                </div>
+                <div class="stats-grid">
+                    <div class="card stat-card">
+                        <div class="stat-icon blue">🔍</div>
+                        <div class="card-title">Total Scans</div>
+                        <div class="card-value" id="stat-total">0</div>
+                        <div class="card-change positive"><span>↑ 12%</span> from last hour</div>
+                        <div class="mini-chart" id="chart-scans"></div>
+                    </div>
+                    <div class="card stat-card">
+                        <div class="stat-icon red">🚨</div>
+                        <div class="card-title">Threats Detected</div>
+                        <div class="card-value" id="stat-threats" style="color:var(--danger)">0</div>
+                        <div class="card-change negative"><span>↑ 3</span> new threats</div>
+                        <div class="mini-chart" id="chart-threats"></div>
+                    </div>
+                    <div class="card stat-card">
+                        <div class="stat-icon green">✅</div>
+                        <div class="card-title">Safe Content</div>
+                        <div class="card-value" id="stat-safe" style="color:var(--success)">0</div>
+                        <div class="card-change positive"><span>98.2%</span> detection rate</div>
+                        <div class="mini-chart" id="chart-safe"></div>
+                    </div>
+                    <div class="card stat-card">
+                        <div class="stat-icon purple">🧠</div>
+                        <div class="card-title">AI Accuracy</div>
+                        <div class="card-value" style="color:var(--accent-secondary)">97.3%</div>
+                        <div class="card-change positive"><span>↑ 0.5%</span> improvement</div>
+                        <div class="mini-chart" id="chart-accuracy"></div>
+                    </div>
+                </div>
+                <div class="scanner-section">
+                    <div class="card">
+                        <div class="section-header">
+                            <h2>⚡ Quick Scan</h2>
+                        </div>
+                        <div class="scan-input-group"><label>Enter URL, email, or text to scan</label><input type="text"
+                                class="scan-input" id="quick-scan-input"
+                                placeholder="https://suspicious-site.com/login..."></div>
+                        <button class="btn btn-primary" onclick="quickScan()" id="quick-scan-btn">🔍 Scan Now</button>
+                        <div id="quick-result" style="margin-top:14px;"></div>
+                    </div>
+                    <div class="card">
+                        <div class="section-header">
+                            <h2>📋 Recent Activity</h2><button class="btn btn-secondary btn-sm"
+                                onclick="navigateTo('threats')">View All</button>
+                        </div>
+                        <div id="recent-threats"></div>
+                    </div>
+                </div>
+
+                <!-- Live Threat Intelligence Feed -->
+                <div class="card live-feed-card" style="margin-top:20px;">
+                    <div class="live-feed-header">
+                        <h2>📡 Live Threat Intelligence Feed</h2>
+                        <div style="display:flex;gap:8px;align-items:center;">
+                            <span class="live-pulse-badge" id="feed-live-badge">Live</span>
+                            <button class="btn btn-secondary btn-sm" onclick="clearFeedItems()">🗑 Clear</button>
+                        </div>
+                    </div>
+                    <div class="feed-stats-row">
+                        <div class="feed-stat">
+                            <div class="feed-stat-value" id="feed-stat-today" style="color:var(--danger)">0</div>
+                            <div class="feed-stat-label">Today's Threats</div>
+                        </div>
+                        <div class="feed-stat">
+                            <div class="feed-stat-value" id="feed-stat-global" style="color:var(--warning)">2.4M</div>
+                            <div class="feed-stat-label">Global / 24h</div>
+                        </div>
+                        <div class="feed-stat">
+                            <div class="feed-stat-value" id="feed-stat-blocked" style="color:var(--accent-primary)">0
+                            </div>
+                            <div class="feed-stat-label">Blocked Today</div>
+                        </div>
+                        <div class="feed-stat">
+                            <div class="feed-stat-value" id="feed-stat-sources" style="color:var(--success)">12</div>
+                            <div class="feed-stat-label">Intel Sources</div>
+                        </div>
+                    </div>
+                    <div class="feed-list" id="live-feed-list"></div>
+                </div>
+
+            </div>
+            <!-- ===== ANALYTICS ===== -->
+            <div class="page" id="page-analytics">
+                <div class="header">
+                    <div class="header-title">
+                        <h1>📈 Threat Analytics</h1>
+                        <p>Visual insights into phishing detection patterns</p>
+                    </div>
+                </div>
+                <div class="stats-grid" style="grid-template-columns: repeat(3,1fr);">
+                    <div class="card" style="padding:20px;">
+                        <h3 style="font-size:14px;margin-bottom:12px;font-weight:700;">Risk Distribution</h3>
+                        <div style="height:220px;position:relative;"><canvas id="analytics-pie"></canvas></div>
+                    </div>
+                    <div class="card" style="padding:20px;">
+                        <h3 style="font-size:14px;margin-bottom:12px;font-weight:700;">Scans by Type</h3>
+                        <div style="height:220px;position:relative;"><canvas id="analytics-bar"></canvas></div>
+                    </div>
+                    <div class="card" style="padding:20px;">
+                        <h3 style="font-size:14px;margin-bottom:12px;font-weight:700;">Engine Detection Rate</h3>
+                        <div style="height:220px;position:relative;"><canvas id="analytics-radar"></canvas></div>
+                    </div>
+                </div>
+                <div class="scanner-section">
+                    <div class="card" style="padding:20px;">
+                        <h3 style="font-size:14px;margin-bottom:12px;font-weight:700;">Threat Timeline</h3>
+                        <div style="height:260px;position:relative;"><canvas id="analytics-timeline"></canvas></div>
+                    </div>
+                    <div class="card" style="padding:20px;">
+                        <h3 style="font-size:14px;margin-bottom:12px;font-weight:700;">Top Threat Indicators</h3>
+                        <div id="analytics-indicators"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===== CRYPTO SCANNER ===== -->
+            <div class="page" id="page-crypto-scanner">
+                <div class="header">
+                    <div class="header-title">
+                        <h1>🪙 Crypto Wallet Scanner</h1>
+                        <p>Detect malicious wallet addresses and smart contracts</p>
+                    </div>
+                </div>
+                <div class="scanner-layout">
+                    <div class="card">
+                        <div class="form-group">
+                            <label>Wallet Address or Smart Contract</label>
+                            <input type="text" class="form-input" id="crypto-input" placeholder="0x..."
+                                style="font-family:var(--font-mono);">
+                        </div>
+                        <div class="form-actions">
+                            <button class="btn btn-primary" onclick="scanCrypto()">🔍 Analyze Wallet</button>
+                            <button class="btn btn-secondary" onclick="loadCryptoExample()">Load Example</button>
+                        </div>
+                    </div>
+                    <div class="card result-panel" style="min-height:300px;">
+                        <div id="crypto-results">
+                            <div class="empty-state">
+                                <div class="empty-icon">🪙</div>
+                                <h3>Ready to Scan</h3>
+                                <p>Enter an ETH, BTC, or SOL address to check for scam reports.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===== SCANNER ===== -->
+            <div class="page" id="page-scanner">
+                <div class="header">
+                    <div class="header-title">
+                        <h1>🔍 Advanced Scanner</h1>
+                        <p>Multi-engine phishing detection with AI analysis</p>
+                    </div>
+                </div>
+                <div class="scanner-section">
+                    <div class="card">
+                        <div class="scan-type-tabs">
+                            <button class="scan-type-tab active" data-type="url" onclick="switchScanType('url')">🔗
+                                URL</button>
+                            <button class="scan-type-tab" data-type="email" onclick="switchScanType('email')">📧
+                                Email</button>
+                            <button class="scan-type-tab" data-type="sms" onclick="switchScanType('sms')">💬
+                                SMS</button>
+                            <button class="scan-type-tab" data-type="website" onclick="switchScanType('website')">🌐
+                                Website</button>
+                        </div>
+                        <div class="scan-form active" id="form-url">
+                            <div class="scan-input-group"><label>URL to analyze</label><input type="text"
+                                    class="scan-input" id="scan-url-input" placeholder="https://example.com/login">
+                            </div><button class="btn btn-primary btn-lg" onclick="runScan('url')" id="btn-scan-url">🛡️
+                                Analyze URL</button>
+                        </div>
+                        <div class="scan-form" id="form-email" style="display:none">
+                            <div class="scan-input-group"><label>Sender Address</label><input type="text"
+                                    class="scan-input" id="scan-email-sender" placeholder="support@g00gle-security.com">
+                            </div>
+                            <div class="scan-input-group"><label>Subject Line</label><input type="text"
+                                    class="scan-input" id="scan-email-subject"
+                                    placeholder="Urgent: Your account has been suspended"></div>
+                            <div class="scan-input-group"><label>Email Body</label><textarea class="scan-input"
+                                    id="scan-email-body" rows="6"
+                                    placeholder="Dear customer, we detected unusual activity..."></textarea></div>
+                            <button class="btn btn-primary btn-lg" onclick="runScan('email')">🛡️ Analyze Email</button>
+                        </div>
+                        <div class="scan-form" id="form-sms" style="display:none">
+                            <div class="scan-input-group"><label>Sender Number</label><input type="text"
+                                    class="scan-input" id="scan-sms-sender" placeholder="+1-555-0123"></div>
+                            <div class="scan-input-group"><label>Message Content</label><textarea class="scan-input"
+                                    id="scan-sms-message" rows="4"
+                                    placeholder="URGENT: Your bank account has been locked..."></textarea></div><button
+                                class="btn btn-primary btn-lg" onclick="runScan('sms')">🛡️ Analyze SMS</button>
+                        </div>
+                        <div class="scan-form" id="form-website" style="display:none">
+                            <div class="scan-input-group"><label>Website URL</label><input type="text"
+                                    class="scan-input" id="scan-website-url" placeholder="https://suspicious-login.com">
+                            </div>
+                            <div class="scan-input-group"><label>Page HTML (optional)</label><textarea
+                                    class="scan-input" id="scan-website-html" rows="4"
+                                    placeholder="Paste HTML source code..."></textarea></div>
+                            <button class="btn btn-primary btn-lg" onclick="runScan('website')">🛡️ Analyze
+                                Website</button>
+                        </div>
+                    </div>
+                    <div class="card result-card" id="scan-results">
+                        <div class="empty-state" id="results-empty">
+                            <div class="empty-icon">🔍</div>
+                            <h3>No scan results yet</h3>
+                            <p>Run a scan to see AI-powered analysis</p>
+                        </div>
+                        <div id="results-content" style="display:none"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===== THREATS ===== -->
+            <div class="page" id="page-threats">
+                <div class="header">
+                    <div class="header-title">
+                        <h1>⚠️ Threat Log</h1>
+                        <p>Complete history of detected threats and scans</p>
+                    </div>
+                    <div class="header-actions"><button class="btn btn-secondary btn-sm" onclick="clearThreats()">🗑️
+                            Clear</button><button class="btn btn-primary btn-sm" onclick="exportThreats()">📥
+                            Export</button></div>
+                </div>
+                <div class="card">
+                    <table class="threat-table">
+                        <thead>
+                            <tr>
+                                <th>Time</th>
+                                <th>Type</th>
+                                <th>Target</th>
+                                <th>Risk Level</th>
+                                <th>Score</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="threat-log-body"></tbody>
+                    </table>
+                    <div class="empty-state" id="threats-empty">
+                        <div class="empty-icon">📋</div>
+                        <h3>No threats logged</h3>
+                        <p>Scan content to see results here</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===== URL CHECKER ===== -->
+            <div class="page" id="page-url-checker">
+                <div class="header">
+                    <div class="header-title">
+                        <h1>🔗 URL Intelligence Checker</h1>
+                        <p>Deep URL feature analysis with 30+ signal extraction</p>
+                    </div>
+                </div>
+                <div class="scanner-section">
+                    <div class="card">
+                        <div class="scan-input-group"><label>Enter URL for deep analysis</label><input type="text"
+                                class="scan-input" id="url-deep-input"
+                                placeholder="https://g00gle-verify.tk/login?id=1234">
+                        </div>
+                        <button class="btn btn-primary btn-lg" onclick="deepURLScan()">🔬 Deep Analysis</button>
+                        <div style="margin-top:16px;">
+                            <p style="font-size:11px;color:var(--text-muted);margin-bottom:6px;font-weight:600;">Try
+                                these examples:</p>
+                            <div style="display:flex;flex-wrap:wrap;gap:5px;"><button class="btn btn-secondary btn-sm"
+                                    onclick="setURLExample('https://secure-paypal-verify.tk/login?ref=abc123')">PayPal
+                                    Phish</button><button class="btn btn-secondary btn-sm"
+                                    onclick="setURLExample('https://192.168.1.1/google.com/signin')">IP-based</button><button
+                                    class="btn btn-secondary btn-sm"
+                                    onclick="setURLExample('https://goog1e.com/accounts/verify')">Homoglyph</button><button
+                                    class="btn btn-secondary btn-sm"
+                                    onclick="setURLExample('https://www.google.com')">Safe
+                                    Example</button></div>
+                        </div>
+                    </div>
+                    <div class="card" id="url-deep-results">
+                        <div class="empty-state">
+                            <div class="empty-icon">🔗</div>
+                            <h3>Enter a URL to analyze</h3>
+                            <p>Our AI extracts 30+ features for analysis</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===== EMAIL ANALYZER ===== -->
+            <div class="page" id="page-email-analyzer">
+                <div class="header">
+                    <div class="header-title">
+                        <h1>📧 Email Phishing Analyzer</h1>
+                        <p>NLP-powered email content analysis</p>
+                    </div>
+                </div>
+                <div class="scanner-section">
+                    <div class="card">
+                        <div class="scan-input-group"><label>From</label><input type="text" class="scan-input"
+                                id="email-deep-sender" placeholder="security@app1e-support.com"></div>
+                        <div class="scan-input-group"><label>Subject</label><input type="text" class="scan-input"
+                                id="email-deep-subject" placeholder="Action Required: Verify Your Account"></div>
+                        <div class="scan-input-group"><label>Body</label><textarea class="scan-input"
+                                id="email-deep-body" rows="8" placeholder="Dear valued customer..."></textarea></div>
+                        <button class="btn btn-primary btn-lg" onclick="deepEmailScan()">🧠 Analyze with AI</button>
+                        <div style="margin-top:10px;"><button class="btn btn-secondary btn-sm"
+                                onclick="loadEmailExample()">📝
+                                Load Example</button></div>
+                    </div>
+                    <div class="card" id="email-deep-results">
+                        <div class="empty-state">
+                            <div class="empty-icon">📧</div>
+                            <h3>Paste an email to analyze</h3>
+                            <p>AI detects urgency, credential requests, and social engineering</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===== SMS CHECKER ===== -->
+            <div class="page" id="page-sms-checker">
+                <div class="header">
+                    <div class="header-title">
+                        <h1>💬 Smishing Detector</h1>
+                        <p>SMS phishing detection &amp; analysis</p>
+                    </div>
+                </div>
+                <div class="scanner-section">
+                    <div class="card">
+                        <div class="scan-input-group"><label>Sender</label><input type="text" class="scan-input"
+                                id="sms-deep-sender" placeholder="+1-800-SCAM"></div>
+                        <div class="scan-input-group"><label>Message</label><textarea class="scan-input"
+                                id="sms-deep-message" rows="5"
+                                placeholder="ALERT: Your bank account has been compromised..."></textarea></div>
+                        <button class="btn btn-primary btn-lg" onclick="deepSMSScan()">🛡️ Check SMS</button>
+                        <div style="margin-top:10px;"><button class="btn btn-secondary btn-sm"
+                                onclick="loadSMSExample()">📝
+                                Load Example</button></div>
+                    </div>
+                    <div class="card" id="sms-deep-results">
+                        <div class="empty-state">
+                            <div class="empty-icon">💬</div>
+                            <h3>Paste an SMS to check</h3>
+                            <p>Detects smishing patterns &amp; malicious links</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===== BULK SCANNER ===== -->
+            <div class="page" id="page-bulk-scanner">
+                <div class="header">
+                    <div class="header-title">
+                        <h1>📋 Bulk URL Scanner</h1>
+                        <p>Scan multiple URLs at once — paste or upload a list</p>
+                    </div>
+                </div>
+                <div class="scanner-section">
+                    <div class="card">
+                        <div class="scan-input-group"><label>Paste URLs (one per line)</label>
+                            <textarea class="scan-input" id="bulk-urls-input" rows="10" placeholder="https://suspicious-site1.tk/login
+https://g00gle-verify.ml/account
+https://www.google.com
+https://paypa1-secure.cf/verify
+https://amazon.com"></textarea>
+                        </div>
+                        <div style="display:flex;gap:10px;align-items:center;">
+                            <button class="btn btn-primary btn-lg" onclick="runBulkScan()">🚀 Scan All URLs</button>
+                            <button class="btn btn-secondary" onclick="loadBulkExample()">📝 Load Example</button>
+                            <button class="btn btn-secondary" onclick="exportBulkResults()">📥 Export CSV</button>
+                        </div>
+                        <div style="margin-top:12px;">
+                            <div class="progress-bar" id="bulk-progress-bar" style="display:none;">
+                                <div class="progress-fill" id="bulk-progress-fill"
+                                    style="width:0%;background:var(--accent-gradient);"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="section-header">
+                            <h2>📊 Bulk Results</h2><span id="bulk-summary"
+                                style="font-size:13px;color:var(--text-secondary);"></span>
+                        </div>
+                        <!-- Summary Intelligence Panel (populated by JS after scan) -->
+                        <div id="bulk-intel-summary" style="display:none;"></div>
+                        <div id="bulk-results">
+                            <div class="empty-state">
+                                <div class="empty-icon">📋</div>
+                                <h3>No bulk scan results</h3>
+                                <p>Paste URLs and click "Scan All"</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===== QR SCANNER ===== -->
+            <div class="page" id="page-qr-scanner">
+                <div class="header">
+                    <div class="header-title">
+                        <h1>📱 QR Code Scanner</h1>
+                        <p>Extract and analyze URLs hidden in QR codes</p>
+                    </div>
+                </div>
+                <div class="scanner-section">
+                    <div class="card">
+                        <div class="scan-input-group">
+                            <label>Paste the URL encoded in a QR code</label>
+                            <input type="text" class="scan-input" id="qr-url-input"
+                                placeholder="Paste the QR code's URL here...">
+                        </div>
+                        <div style="margin:16px 0;padding:20px;border:2px dashed var(--border);border-radius:var(--radius-md);text-align:center;cursor:pointer;"
+                            id="qr-drop-zone" onclick="document.getElementById('qr-file-input').click()">
+                            <div style="font-size:40px;margin-bottom:8px;">📷</div>
+                            <p style="font-size:13px;color:var(--text-secondary);font-weight:500;">Click to upload a QR
+                                code image</p>
+                            <p style="font-size:11px;color:var(--text-muted);">Supports PNG, JPG, SVG</p>
+                            <input type="file" id="qr-file-input" accept="image/*" style="display:none"
+                                onchange="handleQRUpload(event)">
+                        </div>
+                        <button class="btn btn-primary btn-lg" onclick="scanQRUrl()">🔍 Analyze QR URL</button>
+                        <div style="margin-top:14px;">
+                            <p style="font-size:11px;color:var(--text-muted);margin-bottom:6px;font-weight:600;">Common
+                                QR phishing examples:</p>
+                            <div style="display:flex;flex-wrap:wrap;gap:5px;">
+                                <button class="btn btn-secondary btn-sm"
+                                    onclick="setQRExample('https://secure-bank-verify.tk/qr-login?token=abc123')">Fake
+                                    Bank Login</button>
+                                <button class="btn btn-secondary btn-sm"
+                                    onclick="setQRExample('https://free-wifi-connect.ml/portal?redirect=payment')">Fake
+                                    WiFi Portal</button>
+                                <button class="btn btn-secondary btn-sm"
+                                    onclick="setQRExample('https://prize-winner.gq/claim?id=9999')">Prize Scam</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card" id="qr-results">
+                        <div class="empty-state">
+                            <div class="empty-icon">📱</div>
+                            <h3>Upload or paste a QR code URL</h3>
+                            <p>We'll analyze the decoded URL for phishing indicators</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===== VISHING DETECTOR ===== -->
+            <div class="page" id="page-vishing">
+                <div class="header">
+                    <div class="header-title">
+                        <h1>📞 Vishing Detector</h1>
+                        <p>Detect voice phishing from call transcripts</p>
+                    </div>
+                </div>
+                <div class="scanner-section">
+                    <div class="card">
+                        <div class="scan-input-group"><label>Caller ID / Phone Number</label><input type="text"
+                                class="scan-input" id="vishing-caller" placeholder="+1-800-555-0199"></div>
+                        <div class="scan-input-group"><label>Call Transcript</label>
+                            <textarea class="scan-input" id="vishing-transcript" rows="10"
+                                placeholder="Caller: Hello, this is the fraud department of your bank. We've detected suspicious activity on your account. To verify your identity, I'll need your account number and the last 4 digits of your Social Security number..."></textarea>
+                        </div>
+                        <div style="display:flex;gap:10px;">
+                            <button class="btn btn-primary btn-lg" onclick="analyzeVishing()">📞 Analyze
+                                Transcript</button>
+                            <button class="btn btn-secondary" onclick="loadVishingExample()">📝 Load Example</button>
+                        </div>
+                    </div>
+                    <div class="card" id="vishing-results">
+                        <div class="empty-state">
+                            <div class="empty-icon">📞</div>
+                            <h3>Paste a call transcript</h3>
+                            <p>AI detects social engineering patterns in voice calls</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===== EMAIL HEADER ANALYZER ===== -->
+            <div class="page" id="page-header-analyzer">
+                <div class="header">
+                    <div class="header-title">
+                        <h1>🔬 Email Header Analyzer</h1>
+                        <p>Parse raw email headers for SPF, DKIM, DMARC analysis</p>
+                    </div>
+                </div>
+                <div class="scanner-section">
+                    <div class="card">
+                        <div class="scan-input-group"><label>Paste raw email headers</label>
+                            <textarea class="scan-input" id="header-input" rows="12" placeholder="Received: from mail-server.example.com ...
+From: security@paypa1-support.com
+To: victim@gmail.com
+Subject: Urgent Account Verification
+X-Mailer: PHPMailer
+Authentication-Results: spf=fail; dkim=none; dmarc=fail
+Return-Path: <bounced@suspicious.tk>
+Reply-To: different@malicious.com"></textarea>
+                        </div>
+                        <div style="display:flex;gap:10px;">
+                            <button class="btn btn-primary btn-lg" onclick="analyzeHeaders()">🔬 Analyze
+                                Headers</button>
+                            <button class="btn btn-secondary" onclick="loadHeaderExample()">📝 Load Example</button>
+                        </div>
+                    </div>
+                    <div class="card" id="header-results">
+                        <div class="empty-state">
+                            <div class="empty-icon">🔬</div>
+                            <h3>Paste email headers</h3>
+                            <p>Checks SPF, DKIM, DMARC, sender verification and more</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===== PHISHING QUIZ ===== -->
+            <div class="page" id="page-phishing-quiz">
+                <div class="header">
+                    <div class="header-title">
+                        <h1>🎓 Phishing Awareness Quiz</h1>
+                        <p>Test your ability to identify phishing attempts</p>
+                    </div>
+                </div>
+                <div class="card" id="quiz-container">
+                    <div id="quiz-intro">
+                        <div style="text-align:center;padding:30px 20px;">
+                            <div style="font-size:60px;margin-bottom:16px;">🎓</div>
+                            <h2 style="margin-bottom:8px;">Can You Spot the Phish?</h2>
+                            <p
+                                style="color:var(--text-secondary);margin-bottom:20px;max-width:500px;margin-left:auto;margin-right:auto;">
+                                You'll be shown 10 scenarios — emails, URLs, and messages. Decide if each one is <strong
+                                    style="color:var(--danger)">Phishing</strong> or <strong
+                                    style="color:var(--success)">Legitimate</strong>.</p>
+                            <button class="btn btn-primary btn-lg" onclick="startQuiz()">🚀 Start Quiz</button>
+                        </div>
+                    </div>
+                    <div id="quiz-question" style="display:none;"></div>
+                    <div id="quiz-results-panel" style="display:none;"></div>
+                </div>
+            </div>
+
+            <!-- ===== EXPLAINABILITY ===== -->
+            <div class="page" id="page-explainability">
+                <div class="header">
+                    <div class="header-title">
+                        <h1>🧠 Explainable AI Reports</h1>
+                        <p>Understand why content was flagged as phishing</p>
+                    </div>
+                </div>
+                <div class="card xai-card" style="margin-bottom:20px;">
+                    <h2 style="margin-bottom:14px;font-size:17px;font-weight:700;">How PhishShield XAI Works</h2>
+                    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;">
+                        <div class="card" style="text-align:center;padding:18px;">
+                            <div style="font-size:36px;margin-bottom:10px;">🔬</div>
+                            <h4 style="margin-bottom:6px;font-size:14px;">Multi-Engine Analysis</h4>
+                            <p style="font-size:12px;color:var(--text-secondary);">4 specialized engines analyze
+                                different threat vectors simultaneously</p>
+                        </div>
+                        <div class="card" style="text-align:center;padding:18px;">
+                            <div style="font-size:36px;margin-bottom:10px;">📊</div>
+                            <h4 style="margin-bottom:6px;font-size:14px;">Weighted Risk Scoring</h4>
+                            <p style="font-size:12px;color:var(--text-secondary);">Each engine contributes to a final
+                                score with confidence weights</p>
+                        </div>
+                        <div class="card" style="text-align:center;padding:18px;">
+                            <div style="font-size:36px;margin-bottom:10px;">💡</div>
+                            <h4 style="margin-bottom:6px;font-size:14px;">Human-Readable Reasons</h4>
+                            <p style="font-size:12px;color:var(--text-secondary);">Every detection includes detailed
+                                explanations</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="card">
+                    <h2 style="margin-bottom:14px;font-size:17px;font-weight:700;">🔧 Detection Engine Breakdown</h2>
+                    <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:14px;">
+                        <div class="card">
+                            <h4 style="color:var(--accent-primary);margin-bottom:6px;font-size:14px;">🔗 URL Analyzer
+                                (30%)</h4>
+                            <ul style="font-size:12px;color:var(--text-secondary);padding-left:16px;line-height:1.9;">
+                                <li>URL length &amp; entropy analysis</li>
+                                <li>Suspicious token detection</li>
+                                <li>IP address &amp; port detection</li>
+                                <li>URL shortener identification</li>
+                                <li>TLD reputation check</li>
+                            </ul>
+                        </div>
+                        <div class="card">
+                            <h4 style="color:var(--accent-secondary);margin-bottom:6px;font-size:14px;">🧠 NLP Engine
+                                (25%)</h4>
+                            <ul style="font-size:12px;color:var(--text-secondary);padding-left:16px;line-height:1.9;">
+                                <li>Urgency language patterns</li>
+                                <li>Credential request detection</li>
+                                <li>Social engineering indicators</li>
+                                <li>Sender impersonation</li>
+                                <li>Linguistic feature extraction</li>
+                            </ul>
+                        </div>
+                        <div class="card">
+                            <h4 style="color:var(--warning);margin-bottom:6px;font-size:14px;">🌐 Domain Checker (25%)
+                            </h4>
+                            <ul style="font-size:12px;color:var(--text-secondary);padding-left:16px;line-height:1.9;">
+                                <li>Levenshtein edit distance</li>
+                                <li>Unicode homoglyph detection</li>
+                                <li>Typosquatting analysis</li>
+                                <li>Brand name in subdomain</li>
+                                <li>Domain similarity scoring</li>
+                            </ul>
+                        </div>
+                        <div class="card">
+                            <h4 style="color:var(--success);margin-bottom:6px;font-size:14px;">👁️ Visual Engine (20%)
+                            </h4>
+                            <ul style="font-size:12px;color:var(--text-secondary);padding-left:16px;line-height:1.9;">
+                                <li>Login form detection</li>
+                                <li>Brand logo spoofing</li>
+                                <li>JS obfuscation check</li>
+                                <li>Keylogger detection</li>
+                                <li>External form submission</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+
+        </main>
+    </div>
+    <script src="js/app.js"></script>
+</body>
+
+</html>
