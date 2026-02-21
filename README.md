@@ -232,7 +232,12 @@ Content-Type: application/json
 
 ## 👥 Team
 
-Built with ❤️ at Hackathon 2026
+Made with <3
+
+Shubham Dangade
+Alok kale
+Arya Pathak
+Athrva Bawage
 
 ## 📄 License
 
